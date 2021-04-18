@@ -1,15 +1,6 @@
 use std::collections::HashMap;
 extern crate regex;
 use regex::Regex;
-// use std::fs;
-
-enum Expression {
-    Ident(String), Exp(SyntaxTree)
-}
-struct SyntaxTree {
-    rule: String,
-    args: HashMap<String, (Expression, String)>
-}
 
 fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     let mut end = s.len();
@@ -208,44 +199,4 @@ fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&str, 
         }
     }
     Err("No rule matches.")
-}
-
-fn print_info(exp :&SyntaxTree, indents :usize) {
-    println!("Rule: \"{}\"", &exp.rule);
-    for (k, v) in &exp.args {
-        print!("{}  {}({}): ", " ".repeat(indents*4), k, &v.1);
-        match &v.0 {
-            Expression::Ident(name) => println!("{}", name),
-            Expression::Exp(child) => print_info(&child, indents+1)
-        }
-    }
-}
-
-fn main() {
-    // let content = fs::read("hello.eas").expect("Error!");
-    // let content = String::from_utf8(content).expect("Error!");
-    let content = String::from("document.getElementById(10)");
-    let mut rules = HashMap::new();
-    rules.insert("exp", vec![
-        vec![ String::from("{a:ident}") ],
-        vec![ String::from("({a:exp})") ],
-        vec![ String::from("{obj:ident}.{function:ident}({args:exp-multi})") ],
-        vec![ String::from("{function:ident}({args:exp-multi})") ],
-        vec![
-            String::from("{1:exp} - {2:exp}"),
-            String::from("{1:exp} + {2:exp}"),
-        ],
-        vec![
-            String::from("{1:exp} * {2:exp}"),
-            String::from("{1:exp} / {2:exp}")
-        ],
-    ]);
-    rules.insert("exp-multi", vec![
-        vec![ String::from("{a:exp}") ],
-        vec![ String::from("{1:exp}, {2:exp-multi}") ],
-    ]);
-    let tokenable = Regex::new("^(\\.|,|[()]|[+\\-*/]|\\+=|[0-9]+|and|[a-zA-Z_][a-zA-Z_0-9]*)$").expect("Error!");
-
-    print_info(&parse(&content, &rules, "exp", &tokenable).expect("Error!"), 0);
-    // &parse(&content, &rules, &tokenable).expect("Error!");
 }
