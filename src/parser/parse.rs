@@ -87,61 +87,87 @@ pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&s
                     }
                     else {
                         is_ok = false;
+                        let token_id :Vec<&str> = token_name.split(":").collect();
+                        let token_name = *token_id.first().ok_or("No token name!")?;
+                        let token_type = *token_id.last().ok_or("No token type!")?;
                         let mut in_string = false;
                         let mut escaped = false;
                         let mut stack :Vec<char> = Vec::new();
                         next_token = &rule[rule_idx+1..token_from(rule, rule_idx+1, tokenable)].trim();
-                        token_start = code_idx;
-                        while code_idx < s.len() {
-                            let ck = code_idx;
-                            code_idx = token_from(s, ck, tokenable);
-                            if stack.is_empty() && &s[ck..code_idx].trim() == &next_token {
-                                let inner = String::from(s[token_start..ck].trim());
-                                let token_id :Vec<&str> = token_name.split(":").collect();
-                                let token_name = *token_id.first().ok_or("No token name!")?;
-                                let token_type = *token_id.last().ok_or("No token type!")?;
-                                let is_ident = token_type == "ident" && token_from(&inner, 0, tokenable)==inner.len();
-                                if is_ident {
-                                    if first_arg_length != 0 {
-                                        first_arg_length = inner.len();
+                        if next_token == "{" { // TODO! Find better algorithm
+                            if token_type == "ident" {
+                                let ck = code_idx;
+                                code_idx = token_from(s, code_idx, tokenable);
+                                args.insert(String::from(token_name), (Expression::Ident(String::from(s[ck..code_idx].trim())), String::from(token_type)));
+                                is_ok = true;
+                            }
+                            else {
+                                let token_start = code_idx;
+                                code_idx = token_from(s, code_idx, tokenable);
+                                while code_idx < s.len() {
+                                    let ck = code_idx;
+                                    code_idx = token_from(s, code_idx, tokenable);
+                                    if let Ok(inner) = parse(&String::from(s[token_start..ck].trim()), rules, token_type, tokenable) {
+                                        if let Err(_) = parse(&String::from(s[token_start..code_idx].trim()), rules, token_type, tokenable) {
+                                            args.insert(String::from(token_name), (Expression::Exp(inner), String::from(token_type)));
+                                            code_idx = ck;
+                                            is_ok = true;
+                                            break;
+                                        }
                                     }
-                                    args.insert(String::from(token_name), (Expression::Ident(inner), String::from(token_type)));
                                 }
-                                else {
-                                    let exp = parse(&inner, rules, &String::from(token_type), tokenable);
-                                    if let Ok(exp) = exp {
-                                        args.insert(String::from(token_name), (Expression::Exp(exp), String::from(token_type)));
+                            }
+                        }
+                        else {
+                            token_start = code_idx;
+                            while code_idx < s.len() {
+                                let ck = code_idx;
+                                code_idx = token_from(s, ck, tokenable);
+                                if stack.is_empty() && &s[ck..code_idx].trim() == &next_token {
+                                    let inner = String::from(s[token_start..ck].trim());
+                                    let is_ident = token_type == "ident" && token_from(&inner, 0, tokenable)==inner.len();
+                                    if is_ident {
                                         if first_arg_length != 0 {
                                             first_arg_length = inner.len();
                                         }
+                                        args.insert(String::from(token_name), (Expression::Ident(inner), String::from(token_type)));
                                     }
                                     else {
-                                        is_ok = false;
-                                        break;
+                                        let exp = parse(&inner, rules, &String::from(token_type), tokenable);
+                                        if let Ok(exp) = exp {
+                                            args.insert(String::from(token_name), (Expression::Exp(exp), String::from(token_type)));
+                                            if first_arg_length != 0 {
+                                                first_arg_length = inner.len();
+                                            }
+                                        }
+                                        else {
+                                            is_ok = false;
+                                            break;
+                                        }
                                     }
+                                    is_ok = true;
+                                    code_idx = ck;
+                                    break;
                                 }
-                                is_ok = true;
-                                code_idx = ck;
-                                break;
-                            }
-                            for elem in s[ck..code_idx].chars() {
-                                match elem { // From Enpp-rust
-                                    '\\' => { escaped = in_string && !escaped },
-                                    '"' => { if !escaped { in_string = !in_string; } escaped=false; },
-                                    '(' => if !in_string { stack.push('(') },
-                                    ')' => if !in_string {
-                                        if stack.is_empty() { return Err("Parentheses do not match."); }
-                                        else if *stack.last().unwrap() == '(' { stack.pop(); }
-                                        else { return Err("Parentheses do not match."); }
-                                    },
-                                    '{' => if !in_string { stack.push('{') },
-                                    '}' => if !in_string {
-                                        if stack.is_empty() { return Err("Parentheses do not match."); }
-                                        else if *stack.last().unwrap() == '{' { stack.pop(); }
-                                        else { return Err("Parentheses do not match."); }
-                                    },
-                                    _=>{}
-                                };
+                                for elem in s[ck..code_idx].chars() {
+                                    match elem { // From Enpp-rust
+                                        '\\' => { escaped = in_string && !escaped },
+                                        '"' => { if !escaped { in_string = !in_string; } escaped=false; },
+                                        '(' => if !in_string { stack.push('(') },
+                                        ')' => if !in_string {
+                                            if stack.is_empty() { return Err("Parentheses do not match."); }
+                                            else if *stack.last().unwrap() == '(' { stack.pop(); }
+                                            else { return Err("Parentheses do not match."); }
+                                        },
+                                        '{' => if !in_string { stack.push('{') },
+                                        '}' => if !in_string {
+                                            if stack.is_empty() { return Err("Parentheses do not match."); }
+                                            else if *stack.last().unwrap() == '{' { stack.pop(); }
+                                            else { return Err("Parentheses do not match."); }
+                                        },
+                                        _=>{}
+                                    };
+                                }
                             }
                         }
                         if !is_ok {
@@ -198,5 +224,6 @@ pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&s
             return Ok(ret);
         }
     }
+    println!("Type: {}, s: {}", token_type, s);
     Err("No rule matches.")
 }
