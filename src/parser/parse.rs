@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-extern crate regex;
 use regex::Regex;
+use super::*;
 
-fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
+pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     let mut end = s.len();
     let mut checking = String::new();
     let c = s.chars().nth(pos).unwrap();
@@ -23,7 +23,7 @@ fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     end
 }
 
-fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&str, tokenable :&Regex)->Result<SyntaxTree, &'static str> {
+pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&str, tokenable :&Regex)->Result<SyntaxTree, &'static str> {
     let mut ret = SyntaxTree {
         rule: String::new(),
         args: HashMap::new()

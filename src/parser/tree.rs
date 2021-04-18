@@ -1,7 +1,9 @@
-enum Expression {
+use std::collections::HashMap;
+
+pub enum Expression {
     Ident(String), Exp(SyntaxTree)
 }
-struct SyntaxTree {
-    rule: String,
-    args: HashMap<String, (Expression, String)>
+pub struct SyntaxTree {
+    pub args: HashMap<String, (Expression, String)>,
+    pub rule: String
 }
