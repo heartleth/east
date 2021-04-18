@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 pub extern crate regex;
+pub extern crate json;
 pub use regex::Regex;
 use std::fs;
 
@@ -20,6 +21,10 @@ fn print_info(exp :&SyntaxTree, indents :usize) {
 fn main() {
     let content = fs::read("hello.eas").expect("Error!");
     let content = String::from_utf8(content).expect("Error!");
+
+    let lang = fs::read("hello.eas").expect("Error!");
+    let lang = json::parse(std::str::from_utf8(&lang).expect("Error!"));
+    
     let mut rules = HashMap::new();
     rules.insert("exp", vec![
         vec![ String::from("{a:ident}") ],
@@ -49,7 +54,7 @@ fn main() {
         vec![ String::from("{t:ident}") ],
         vec![ String::from("const {t:type}") ],
         vec![ String::from("{t:type} const") ],
-        vec![ String::from("{super:type}::{chile:type}") ],
+        vec![ String::from("{super:type}::{child:type}") ],
         vec![ String::from("{t:ident}<{args:type-multi}>") ],
     ]);
     rules.insert("type-multi", vec![

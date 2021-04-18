@@ -1,0 +1,54 @@
+{
+    "name": "C++",
+    "ext": ".cpp",
+    "syntax": {
+        "exp": [
+            [{ "name": "", "rule": "{a:ident}" }],
+            [{ "name": "", "rule": "({a:exp})" }],
+            [{ "name": "", "rule": "{obj:ident}.{function:ident}({args:exp-multi})" }],
+            [{ "name": "", "rule": "{function:ident}({args:exp-multi})" }],
+            [
+                { "name": "", "rule": "{1:exp} << {2:exp}" },
+                { "name": "", "rule": "{1:exp} >> {2:exp}" }
+            ],
+            [
+                { "name": "", "rule": "{1:exp} - {2:exp}" },
+                { "name": "", "rule": "{1:exp} + {2:exp}" }
+            ],
+            [
+                { "name": "", "rule": "{1:exp} * {2:exp}" },
+                { "name": "", "rule": "{1:exp} / {2:exp}" }
+            ],
+            [{ "name": "", "rule": "{obj:ident}.{member:exp}" }],
+            [{ "name": "", "rule": "{context:ident}::{member:exp}" }]
+        ],
+        "exp-multi": [
+            [{ "name": "", "rule": "{a:exp}" }],
+            [{ "name": "", "rule": "{1:exp}, {2:exp-multi}" }]
+        ],
+        "type": [
+            [{ "name": "", "rule": "{t:ident}" }],
+            [{ "name": "", "rule": "const {t:type}" }],
+            [{ "name": "", "rule": "{t:type} const" }],
+            [{ "name": "", "rule": "{super:type}::{child:type}" }],
+            [{ "name": "", "rule": "{t:ident}<{args:type-multi}>" }]
+        ],
+        "type-multi": [
+            [{ "name": "", "rule": "{t:type}"}],
+            [{ "name": "", "rule": "{a:exp}"}],
+            [{ "name": "", "rule": "{1:type}, {2:type-multi}" }],
+            [{ "name": "", "rule": "{1:exp}, {2:type-multi}" }]
+        ],
+        "statement": [
+            [{ "name": "", "rule": "{t:type} {name:ident}; "}],
+            [{ "name": "", "rule": "{t:type} {name:ident} = {a:exp};" }],
+            [{ "name": "", "rule": "{a:exp};"}]
+        ],
+        "block": [
+            [{ "name": "", "rule": "{a:statement}" }],
+            [{ "name": "", "rule": "{1:statement}\n{2:block}" }],
+            [{ "name": "", "rule": "{1:statement}{2:block}}" }]
+        ]
+    }
+}
+
