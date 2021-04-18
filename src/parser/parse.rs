@@ -23,6 +23,23 @@ pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     end
 }
 
+pub fn token_from_reverse(s :&String, pos :usize, tokenable :&Regex)->usize {
+    let mut end = 0;
+    let mut checking = String::new();
+
+    for i in (0 .. pos).rev() {
+        let c = s.chars().nth(i).unwrap();
+        if c != ' ' || (i != 1 && i != pos - 1) {
+            checking.insert(0, c);
+        }
+        if !tokenable.is_match(&checking[..]) {
+            end = i + 1;
+            break;
+        }
+    }
+    end
+}
+
 pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&str, tokenable :&Regex)->Result<SyntaxTree, &'static str> {
     let mut ret = SyntaxTree {
         rule: String::new(),
@@ -103,14 +120,13 @@ pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&s
                             }
                             else {
                                 let token_start = code_idx;
-                                code_idx = token_from(s, code_idx, tokenable);
-                                while code_idx < s.len() {
+                                code_idx = s.len();
+                                while code_idx > 0 {
                                     let ck = code_idx;
-                                    code_idx = token_from(s, code_idx, tokenable);
-                                    if let Ok(inner) = parse(&String::from(s[token_start..ck].trim()), rules, token_type, tokenable) {
-                                        if let Err(_) = parse(&String::from(s[token_start..code_idx].trim()), rules, token_type, tokenable) {
+                                    code_idx = token_from_reverse(s, code_idx, tokenable);
+                                    if let Ok(inner) = parse(&String::from(s[token_start..code_idx].trim()), rules, token_type, tokenable) {
+                                        if let Err(_) = parse(&String::from(s[token_start..ck].trim()), rules, token_type, tokenable) {
                                             args.insert(String::from(token_name), (Expression::Exp(inner), String::from(token_type)));
-                                            code_idx = ck;
                                             is_ok = true;
                                             break;
                                         }
@@ -224,6 +240,6 @@ pub fn parse(s :&String, rules :&HashMap<&str, Vec<Vec<String>>>, token_type :&s
             return Ok(ret);
         }
     }
-    println!("Type: {}, s: {}", token_type, s);
+    // println!("Type: {}, s: {}", token_type, s);
     Err("No rule matches.")
 }

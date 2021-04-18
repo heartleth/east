@@ -1,1 +1,1 @@
-int a;
+std::string a;
