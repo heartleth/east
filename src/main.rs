@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 pub extern crate regex;
 pub extern crate json;
 pub use regex::Regex;
@@ -27,7 +26,7 @@ fn main() {
 
     let tokenable = Regex::new(&jpath!(lang, tokenable).unwrap()).unwrap();
 
-    // println!("{}", token_from(&"}".to_string(), 0, &tokenable));
+    // println!("{}", parse(&"int a 1: 10) { 10;".to_string(), &lang, "type", &tokenable).is_ok());
     print_info(&parse(&content, &lang, "block", &tokenable).expect("Error!"), 0);
 }
 

@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use crate::jpath;
 use regex::Regex;
 use super::*;
 use json::*;
@@ -29,6 +28,7 @@ pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     }
     end
 }
+
 pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->String {
     let mut checking = String::new();
     let c = s.chars().nth(pos).unwrap();
@@ -59,21 +59,21 @@ pub fn token_from_reverse(s :&String, pos :usize, tokenable :&Regex)->usize {
 
     for i in (0 .. pos).rev() {
         let c = s.chars().nth(i).unwrap();
-        if c != ' ' || (i != 1 && i != pos - 1) {
+        if c != ' ' && c != '\n' || (i != 0 && i != pos - 1) {
             if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != '\\' {
                 checking.insert(0, c);
+                if !tokenable.is_match(&checking.trim()[..]) {
+                    end = i + 1;
+                    break;
+                }
             }
-        }
-        if !tokenable.is_match(&checking[..]) {
-            end = i + 1;
-            break;
         }
     }
     end
 }
 
 pub fn parse(s :&String, rules :&JsonValue, token_type :&str, tokenable :&Regex)->std::result::Result<SyntaxTree, &'static str> {
-    // println!("{}", s);
+    // println!("{} // {}", s, token_type);
     let mut ret = SyntaxTree {
         rule: String::new(),
         args: HashMap::new()
