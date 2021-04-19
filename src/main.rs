@@ -28,7 +28,9 @@ fn main() {
     find_template(&mut lang, &tokenable).unwrap();
 
     // println!("{}", parse(&"int a 1: 10) { 10;".to_string(), &lang, "type", &tokenable).is_ok());
-    print_info(&parse(&content, &lang, "block", &tokenable).expect("Error!"), 0);
+    // print_info(&parse(&content, &lang, "block", &tokenable).expect("Error!"), 0);
+    // println!("{}", first_phrase("30 + 40 * 20", &lang["syntax"], &tokenable, "exp").unwrap().0);
+    print_info(&first_phrase("30 + 40 * 20", &lang["syntax"], &tokenable, "exp").unwrap().1, 0);
 }
 
 #[macro_export]
