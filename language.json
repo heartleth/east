@@ -1,53 +1,68 @@
 {
     "name": "C++",
     "ext": ".cpp",
+
+    "tokenable": "^([{}]|[=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
     "syntax": {
         "exp": [
-            [{ "name": "", "rule": "{a:ident}" }],
-            [{ "name": "", "rule": "({a:exp})" }],
-            [{ "name": "", "rule": "{obj:ident}.{function:ident}({args:exp-multi})" }],
-            [{ "name": "", "rule": "{function:ident}({args:exp-multi})" }],
+            [{ "name": "ident", "rule": "{a:ident}" }],
+            [{ "name": "bracket_closed", "rule": "({a:exp})" }],
+            [{ "name": "method_call", "rule": "{obj:exp}.{function:ident}({args:exp_multi})" }],
+            [{ "name": "function_call", "rule": "{function:ident}({args:exp_multi})" }],
             [
-                { "name": "", "rule": "{1:exp} << {2:exp}" },
-                { "name": "", "rule": "{1:exp} >> {2:exp}" }
+                { "name": "greater", "rule": "{1:exp} < {2:exp}" },
+                { "name": "lesser", "rule": "{1:exp} > {2:exp}" }
             ],
             [
-                { "name": "", "rule": "{1:exp} - {2:exp}" },
-                { "name": "", "rule": "{1:exp} + {2:exp}" }
+                { "name": "left_shift", "rule": "{1:exp} << {2:exp}" },
+                { "name": "right_shift", "rule": "{1:exp} >> {2:exp}" }
             ],
             [
-                { "name": "", "rule": "{1:exp} * {2:exp}" },
-                { "name": "", "rule": "{1:exp} / {2:exp}" }
+                { "name": "plus", "rule": "{1:exp} + {2:exp}" },
+                { "name": "minus", "rule": "{1:exp} - {2:exp}" }
             ],
-            [{ "name": "", "rule": "{obj:ident}.{member:exp}" }],
-            [{ "name": "", "rule": "{context:ident}::{member:exp}" }]
+            [
+                { "name": "multiply", "rule": "{1:exp} * {2:exp}" },
+                { "name": "divide", "rule": "{1:exp} / {2:exp}" }
+            ],
+            [{ "name": "member", "rule": "{obj:exp}.{member:ident}" }],
+            [{ "name": "context_member", "rule": "{context:ident}::{member:exp}" }]
         ],
-        "exp-multi": [
-            [{ "name": "", "rule": "{a:exp}" }],
-            [{ "name": "", "rule": "{1:exp}, {2:exp-multi}" }]
+        "exp_multi": [
+            [{ "name": "single", "rule": "{a:exp}" }],
+            [{ "name": "recursive", "rule": "{1:exp}, {2:exp_multi}" }]
         ],
         "type": [
-            [{ "name": "", "rule": "{t:ident}" }],
-            [{ "name": "", "rule": "const {t:type}" }],
-            [{ "name": "", "rule": "{t:type} const" }],
-            [{ "name": "", "rule": "{super:type}::{child:type}" }],
-            [{ "name": "", "rule": "{t:ident}<{args:type-multi}>" }]
+            [{ "name": "normal_type", "rule": "{t:ident}" }],
+            [{ "name": "const", "rule": "const {t:type}" }],
+            [{ "name": "const", "rule": "{t:type} const" }],
+            [{ "name": "context", "rule": "{super:type}::{child:type}" }],
+            [{ "name": "generics", "rule": "{t:ident}<{args:type_multi}>" }]
         ],
-        "type-multi": [
-            [{ "name": "", "rule": "{t:type}"}],
-            [{ "name": "", "rule": "{a:exp}"}],
-            [{ "name": "", "rule": "{1:type}, {2:type-multi}" }],
-            [{ "name": "", "rule": "{1:exp}, {2:type-multi}" }]
+        "type_multi": [
+            [{ "name": "single_type", "rule": "{t:type}"}],
+            [{ "name": "single_value", "rule": "{a:exp}"}],
+            [{ "name": "type_recursive", "rule": "{1:type}, {2:type_multi}" }]
+        ],
+        "lf": [
+            [{ "name": "", "rule": "\n" }],
+            [{ "name": "", "rule": "\r" }],
+            [{ "name": "", "rule": "\n{:lf}" }],
+            [{ "name": "", "rule": "\r{:lf}" }]
         ],
         "statement": [
-            [{ "name": "", "rule": "{t:type} {name:ident}; "}],
-            [{ "name": "", "rule": "{t:type} {name:ident} = {a:exp};" }],
-            [{ "name": "", "rule": "{a:exp};"}]
+            [{ "name": "if", "rule": "if ({condition:exp}) \\{ {a:block} \\}" }],
+            [{ "name": "while", "rule": "while ({condition:exp}) \\{ {a:block} \\}" }], 
+            [{ "name": "", "rule": ";"}],
+            [{ "name": "expression", "rule": "{a:exp};"}],
+            [{ "name": "declaration_and_init", "rule": "{t:type} {name:ident} = {a:exp};" }],
+            [{ "name": "declaration", "rule": "{t:type} {name:ident};" }]
         ],
         "block": [
-            [{ "name": "", "rule": "{a:statement}" }],
-            [{ "name": "", "rule": "{1:statement}\n{2:block}" }],
-            [{ "name": "", "rule": "{1:statement}{2:block}}" }]
+            [{ "name": "single", "rule": "{a:statement}" }],
+            [{ "name": "recursive", "rule": "{1:statement}\n{2:block}" }],
+            [{ "name": "recursive", "rule": "{1:statement}{2:block}}" }],
+            [{ "name": "recursive", "rule": "{1:statement}{:lf}{2:block}" }]
         ]
     }
 }
