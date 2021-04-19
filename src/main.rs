@@ -22,9 +22,10 @@ fn main() {
     let content = String::from_utf8(content).expect("Error!");
 
     let lang = &fs::read("language.json").expect("Error!");
-    let lang = json::parse(std::str::from_utf8(&lang).expect("Error!")).unwrap();
-
+    let mut lang = json::parse(std::str::from_utf8(&lang).expect("Error!")).unwrap();
     let tokenable = Regex::new(&jpath!(lang, tokenable).unwrap()).unwrap();
+
+    find_template(&mut lang, &tokenable).unwrap();
 
     // println!("{}", parse(&"int a 1: 10) { 10;".to_string(), &lang, "type", &tokenable).is_ok());
     print_info(&parse(&content, &lang, "block", &tokenable).expect("Error!"), 0);

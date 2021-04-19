@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use regex::Regex;
 use super::*;
 use json::*;
+mod phrase;
+pub use phrase::*;
 
 pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     if s.len() == 0 { return 0; }
@@ -29,9 +31,10 @@ pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     end
 }
 
-pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->String {
-    let mut checking = String::new();
+pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->(usize, String) {
     let c = s.chars().nth(pos).unwrap();
+    let mut checking = String::new();
+    let end = s.len();
     if c != ' ' {
         if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != '\\' {
             checking.push(c);
@@ -45,12 +48,12 @@ pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->String {
                 checking.push(c);
                 if !tokenable.is_match(&checking[..]) {
                     checking.pop();
-                    return checking;
+                    return (i, checking);
                 }
             }
         }
     }
-    checking
+    (end, checking)
 }
 
 pub fn token_from_reverse(s :&String, pos :usize, tokenable :&Regex)->usize {
@@ -183,7 +186,7 @@ pub fn parse(s :&String, rules :&JsonValue, token_type :&str, tokenable :&Regex)
                             let token_id :Vec<&str> = token_name.split(":").collect();
                             let token_name = *token_id.first().ok_or("No token name!")?;
                             let token_type = *token_id.last().ok_or("No token type!")?;
-                            let next_token = token_from_s(&rule.to_string(), rule_idx+1, tokenable);
+                            let next_token = token_from_s(&rule.to_string(), rule_idx+1, tokenable).1;
                             if next_token == "{" { // TODO! Find better algorithm
                                 if token_type == "ident" {
                                     let ck = code_idx;
