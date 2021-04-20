@@ -5,7 +5,6 @@
     "tokenable": "^([:;{}]|[=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
     "syntax": {
         "exp": [
-            [{ "name": "ident", "rule": "{a:ident}" }],
             [{ "name": "bracket_closed", "rule": "({a:exp})" }],
             [{ "name": "method_call", "rule": "{obj:exp}.{function:ident}({args:exp_multi})" }],
             [{ "name": "function_call", "rule": "{function:ident}({args:exp_multi})" }],
@@ -26,7 +25,8 @@
                 { "name": "divide", "rule": "{1:exp} / {2:exp}" }
             ],
             [{ "name": "member", "rule": "{obj:exp}.{member:ident}" }],
-            [{ "name": "context_member", "rule": "{context:ident}::{member:exp}" }]
+            [{ "name": "context_member", "rule": "{context:ident}::{member:exp}" }],
+            [{ "name": "ident", "rule": "{a:ident}" }]
         ],
         "exp_multi": [
             [{ "name": "single", "rule": "{a:exp}" }],
@@ -51,7 +51,7 @@
             [{ "name": "", "rule": ";"}],
             [{ "name": "expression", "rule": "{a:exp};"}],
             [{ "name": "declaration_and_init", "rule": "{t:type} {name:ident} = {a:exp};" }],
-            [{ "name": "declaration", "rule": "{t:type} {name:ident};" }]
+            [{ "name": "declaration", "rule": "let {t:type} {name:ident};" }]
         ],
         "block": [
             [{ "name": "", "rule": "" }],
