@@ -48,10 +48,10 @@ pub fn find_template(rules :&mut json::JsonValue, tokenable :&Regex)->std::resul
 }
 
 pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_type :&str)->std::result::Result<(usize, SyntaxTree), &'static str> {
-    // print!(" [[ {} :{} // ", s, token_type);
     let mut code_idx = 0;
+    let mut is_going_out = false;
     let mut end = 0;
-    let mut candidates :Vec<(usize, &JsonValue, bool, HashMap<&str, (&str, (usize, usize))>, usize, bool, usize, &str, usize, usize)> = Vec::new();
+    let mut candidates :Vec<(usize, &JsonValue, bool, BTreeMap<&str, (&str, (usize, usize))>, usize, bool, usize, &str, usize, usize)> = Vec::new();
     let mut to_drop = Vec::new();
     let s_tos = &s.to_string();
 
@@ -59,12 +59,16 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
     let mut j = 0;
     for ruleset in rules[token_type].members() {
         for rule in ruleset.members() {
-            candidates.push((i, rule, false, HashMap::new(), 0, true, 0, "", j, 9999));
+            candidates.push((i, rule, false, BTreeMap::new(), 0, true, 0, "", j, 9999));
             i += 1;
         }
         j += 1;
     }
     let mut cck = 0;
+    let mut in_string = false;
+    let mut escaped = false;
+    let mut stack :Vec<char> = Vec::new();
+
     while code_idx < s.len() {
         to_drop.clear();
         let ck = code_idx;
@@ -72,14 +76,12 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
         let token = &info.1.trim();
         code_idx = info.0;
         
-        print!("\n\n`{}`: ", token);
         for rule in candidates.iter_mut() {
             let name = &rule.1["name"].as_str().unwrap();
             let tokens = &rule.1["tokens"];
             let types :Vec<&json::JsonValue> = tokens.members().next().unwrap().members().collect();
             let tokens :Vec<&json::JsonValue> = tokens.members().last().unwrap().members().collect();
             
-            print!(" {}[{}] ", name, rule.4);
             if rule.6 <= ck {
                 if let Some(is_true) = types.get(rule.4) {
                     let mut will_remain = true;
@@ -114,9 +116,9 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                                     rule.5 = false;
                                     let (a, b) = rule.3.get_mut(token_name).unwrap().1;
                                     rule.9 = b - a;
-                                    // if token_type == "ident" && rule.9 == 0 {
-                                    //     to_drop.push(rule.0);
-                                    // }
+                                    if token_name == "ident" && rule.9 == 0 {
+                                        to_drop.push(rule.0);
+                                    }
                                 }
                             }
                         }
@@ -127,44 +129,74 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         let token_name = *token_id.first().ok_or("No token name!")?;
                         let elem_token_type = *token_id.last().ok_or("No token type!")?;
                         rule.7 = token_name;
-
-                        if rule.5 {
-                            if elem_token_type != token_type && elem_token_type != "ident" {
-                                rule.5 = false;
-                            }
-                        }
                         
-                        if rule.5 {
-                            if rule.2 {
-                                (rule.3.get_mut(token_name).unwrap().1).1 = code_idx;
-                            }
-                            else {
-                                rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
-                                rule.2 = true;
-                            }
+                        if elem_token_type == "ident" {
+                            rule.4 += 1;
+                            println!("{}", token_name);
+                            rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
+                            rule.5 = false;
                         }
                         else {
-                            let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type)?;
-                            rule.6 = ck + inner.0;
-                            println!("{} {}", name, rule.6);
-                            rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
-                            rule.4 += 1;
-                            rule.2 = true;
+                            if rule.5 {
+                                if elem_token_type != token_type && elem_token_type != "ident" {
+                                    rule.5 = false;
+                                }
+                            }
+                            if rule.5 {
+                                if rule.2 {
+                                    (rule.3.get_mut(token_name).unwrap().1).1 = code_idx;
+                                }
+                                else {
+                                    rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
+                                    rule.2 = true;
+                                }
+                            }
+                            else {
+                                let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type)?;
+                                rule.6 = ck + inner.0;
+                                rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
+                                rule.4 += 1;
+                                rule.2 = true;
+                            }
                         }
                     }
                 }
                 else {
-                    to_drop.push(rule.0);
+                    let len = types.len();
+                    if rule.4 < len {
+                        to_drop.push(rule.0);
+                    }
                 }
             }
+
         }
-        
+        // for elem in token.chars() {
+        //     match elem { // From Enpp-rust
+        //         '\\' => { escaped = in_string && !escaped },
+        //         '"' => { if !escaped { in_string = !in_string; } escaped=false; },
+        //         '(' => if !in_string { stack.push('(') },
+        //         ')' => if !in_string {
+        //             if stack.is_empty() { is_going_out = true; break; }
+        //             else if *stack.last().unwrap() == '(' { stack.pop(); }
+        //             else { return Err("Parentheses do not match."); }
+        //         },
+        //         '{' => if !in_string { stack.push('{') },
+        //         '}' => if !in_string {
+        //             if stack.is_empty() { is_going_out = true; break; }
+        //             else if *stack.last().unwrap() == '{' { stack.pop(); }
+        //             else { return Err("Parentheses do not match."); }
+        //         },
+        //         _=>escaped=false
+        //     };
+        // }
         candidates.retain(|x|!to_drop.contains(&x.0));
         cck = ck;
+        if is_going_out {
+            break;
+        }
     }
     
     candidates.retain(|x| {
-        println!("\n{} {}", x.1["name"].as_str().unwrap(), token_type);
         let len = x.1["tokens"].members().last().unwrap().members().len();
         x.4 == len || (x.4 == len-1 && x.2)
     });
@@ -172,19 +204,20 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
     if let Some(min) = &candidates.first() {
         let mut candidates_final = (end, *min, SyntaxTree {
             rule: String::new(),
-            args: HashMap::new()
+            args: BTreeMap::new()
         });
         
         for code in &candidates {
             let mut ret = SyntaxTree {
                 rule: String::new(),
-                args: HashMap::new()
+                args: BTreeMap::new()
             };
             let mut is_skipping = false;
-            let mut ret_args = HashMap::new();
+            let mut ret_args = BTreeMap::new();
             let name = code.1["name"].as_str().unwrap();
             
             for (k, v) in &code.3 {
+                println!("{} {}", name, k);
                 end = s.len();
                 let token_type = v.0;
                 if k == &code.7 {
@@ -203,15 +236,15 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     let (a, b) = v.1;
                     let s =  &s[a..b];
                     if token_type == "ident" {
-                        let info = token_from(&s[a..b].trim().to_string(), 0, tokenable);
-                        if info != s.trim().len() {
+                        let info = token_from(&s.to_string(), 0, tokenable);
+                        if info != s.len() {
                             is_skipping = true;
                         }
-                        ret_args.insert(k.to_string(), (Expression::Ident(s[a..b].to_string()), "ident".to_string()));
+                        ret_args.insert(k.to_string(), (Expression::Ident(s.to_string()), "ident".to_string()));
                     }
                     else {
-                        let info = first_phrase(&s[a..b].trim(), rules, tokenable, token_type).unwrap();
-                        if info.0 != s.trim().len() {
+                        let info = first_phrase(&s, rules, tokenable, token_type).unwrap();
+                        if info.0 != s.len() {
                             is_skipping = true;
                         }
                         ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
@@ -221,22 +254,26 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
             if !is_skipping {
                 ret.rule = name.to_string();
                 ret.args = ret_args;
-                // if end > candidates_final.0 {
-                //     candidates_final.0 = end;
-                //     candidates_final.1 = code;
-                //     candidates_final.2 = ret;
-                // }
-                if code.9 <= (candidates_final.1).9 && (candidates_final.1).8 == code.8 {
+                if end > candidates_final.0 {
                     candidates_final.0 = end;
                     candidates_final.1 = code;
                     candidates_final.2 = ret;
                 }
+                else if end == candidates_final.0 && (code.9 <= (candidates_final.1).9 && (candidates_final.1).8 == code.8) {
+                    candidates_final.0 = end;
+                    candidates_final.1 = code;
+                    candidates_final.2 = ret;
+                }
+                //if code.9 <= (candidates_final.1).9 && (candidates_final.1).8 == code.8 {
+                //    candidates_final.0 = end;
+                //    candidates_final.1 = code;
+                //    candidates_final.2 = ret;
+                //}
             }
         }
-        // print!(" >> {} {} ]] ", (candidates_final.1).1["name"].as_str().unwrap(), candidates_final.0);
         return Ok((candidates_final.0, candidates_final.2));
     }
     
-    println!("{}", token_type);
+    println!("{} `{}`", token_type, s);
     return Err("No rule matches!");
 }

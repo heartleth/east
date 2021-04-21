@@ -27,7 +27,7 @@ fn main() {
 
     find_template(&mut lang, &tokenable).unwrap();
 
-    print_info(&first_phrase("10 + 20 30", &lang["syntax"], &tokenable, "exp").unwrap().1, 0);
+    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "exp").unwrap().1, 0);
 }
 
 #[macro_export]

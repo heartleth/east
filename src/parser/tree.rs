@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub enum Expression {
     Ident(String), Exp(SyntaxTree)
 }
 
 pub struct SyntaxTree {
-    pub args: HashMap<String, (Expression, String)>,
+    pub args: BTreeMap<String, (Expression, String)>,
     pub rule: String
 }
