@@ -152,12 +152,17 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                                 }
                             }
                             else {
-                                let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type, true)?;
-                                rule.6 = ck + inner.0;
-                                rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
-                                rule.4 += 1;
-                                rule.5 = false;
-                                rule.2 = true;
+                                let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type, true);
+                                if let Ok(inner) = inner {
+                                    rule.6 = ck + inner.0;
+                                    rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
+                                    rule.4 += 1;
+                                    rule.5 = false;
+                                    rule.2 = true;
+                                }
+                                else {
+                                    to_drop.push(rule.0);
+                                }
                             }
                         }
                     }
@@ -251,7 +256,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     }
                     else {
                         let info = first_phrase(&s, rules, tokenable, token_type, notree);
-                        println!("{}", code.1["name"]);
                         if let Ok(info) = info {
                             if info.0 != s.len() {
                                 is_skipping = true;
@@ -285,10 +289,8 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                 }
             }
         }
-        println!("ㅇㅇ");
         return Ok((candidates_final.0, candidates_final.2));
     }
     
-    println!("{} `{}`", token_type, s);
     return Err("No rule matches!");
 }
