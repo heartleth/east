@@ -80,7 +80,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
             let tokens = &rule.1["tokens"];
             let types :Vec<&json::JsonValue> = tokens.members().next().unwrap().members().collect();
             let tokens :Vec<&json::JsonValue> = tokens.members().last().unwrap().members().collect();
-            
             if rule.6 <= ck {
                 if let Some(is_true) = types.get(rule.4) {
                     let mut will_remain = true;
@@ -99,7 +98,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     else if let Some(will_expect) = types.get(rule.4+1) {
                         if will_expect.as_bool().unwrap() {
                             if let Some(expected) = &tokens[rule.4+1].as_str() {
-                                if expected == token {
+                                if expected == token && (stack.is_empty() || stack.len()==1 && (expected == &")" || expected == &"}")) {
                                     let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split(":").collect();
                                     let token_name = *token_id.first().ok_or("No token name!")?;
                                     let token_type = *token_id.last().ok_or("No token type!")?;
@@ -115,9 +114,10 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                                     rule.5 = false;
                                     let (a, b) = rule.3.get_mut(token_name).unwrap().1;
                                     rule.9 = b - a;
-                                    if token_name == "ident" && rule.9 == 0 {
+                                    if token_type == "ident" && rule.9 == 0 {
                                         to_drop.push(rule.0);
                                     }
+                                    rule.6 = code_idx;
                                 }
                             }
                         }
@@ -128,11 +128,13 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         let token_name = *token_id.first().ok_or("No token name!")?;
                         let elem_token_type = *token_id.last().ok_or("No token type!")?;
                         rule.7 = token_name;
+                        rule.6 = code_idx;
                         
                         if elem_token_type == "ident" {
                             rule.4 += 1;
                             rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
                             rule.5 = false;
+                            rule.2 = false;
                         }
                         else {
                             if rule.5 {
@@ -196,7 +198,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
     
     candidates.retain(|x| {
         let len = x.1["tokens"].members().last().unwrap().members().len();
-        x.4 == len || (x.4 == len-1 && x.2)
+        x.4 == len
     });
     
     if let Some(min) = &candidates.first() {
@@ -213,27 +215,32 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
             let mut is_skipping = false;
             let mut ret_args = BTreeMap::new();
             let name = code.1["name"].as_str().unwrap();
-            
+
             for (k, v) in &code.3 {
-                end = s.len();
+                end = code.6;
                 let token_type = v.0;
-                if k == &code.7 {
+                if k == &code.7 && code.2 && code.5 {
                     let (a, _) = &v.1;
                     if token_type == "ident" {
-                        end = a + token_from(&s[*a..].to_string(), 0, tokenable);
+                        end = a + token_from(&s[*a..], 0, tokenable);
                         ret_args.insert(k.to_string(), (Expression::Ident(s[*a..end].to_string()), "ident".to_string()));
                     }
                     else {
-                        let info = first_phrase(&s[*a..], rules, tokenable, token_type)?;
-                        end = a + info.0;
-                        ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
+                        let info = first_phrase(&s[*a..], rules, tokenable, token_type);
+                        if let Ok(info) = info {
+                            end = a + info.0;
+                            ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
+                        }
+                        else {
+                            is_skipping = true;
+                        }
                     }
                 }
                 else {
                     let (a, b) = v.1;
                     let s =  &s[a..b];
                     if token_type == "ident" {
-                        let info = token_from(&s.to_string(), 0, tokenable);
+                        let info = token_from(s, 0, tokenable);
                         if info != s.len() {
                             is_skipping = true;
                         }

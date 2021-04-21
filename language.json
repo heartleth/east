@@ -51,12 +51,12 @@
             [{ "name": "", "rule": ";"}],
             [{ "name": "expression", "rule": "{a:exp};"}],
             [{ "name": "declaration_and_init", "rule": "{t:type} {name:ident} = {a:exp};" }],
-            [{ "name": "declaration", "rule": "let {t:type} {name:ident};" }]
+            [{ "name": "declaration", "rule": "{t:type} {name:ident};" }]
         ],
         "block": [
-            [{ "name": "", "rule": "" }],
-            [{ "name": "single", "rule": "{a:statement}" }],
-            [{ "name": "recursive", "rule": "{1:statement}\n{2:block}" }],
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "single", "rule": "{1:statement}" }],
+            [{ "name": "recursive_lf", "rule": "{1:statement}\n{2:block}" }],
             [{ "name": "recursive", "rule": "{1:statement}{2:block}" }]
         ]
     }

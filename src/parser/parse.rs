@@ -6,11 +6,12 @@ use json::*;
 mod phrase;
 pub use phrase::*;
 
-pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
+pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
     if s.len() == 0 { return 0; }
     let mut end = s.len();
     let mut checking = String::new();
     let c = s.chars().nth(pos).unwrap();
+    let mut skip_blanks = true;
     if c != ' ' {
         if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != '\\' {
             checking.push(c);
@@ -19,7 +20,10 @@ pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
 
     for i in pos+1 .. s.len() {
         let c = s.chars().nth(i).unwrap();
-        if c != ' ' || i != s.len()-1 {
+        if c != ' ' || skip_blanks {
+            if c != ' ' {
+                skip_blanks = false;
+            }
             if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != '\\' {
                 checking.push(c);
                 if !tokenable.is_match(&checking[..]) {
@@ -32,9 +36,10 @@ pub fn token_from(s :&String, pos :usize, tokenable :&Regex)->usize {
     end
 }
 
-pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->(usize, String) {
+pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
     let c = s.chars().nth(pos).unwrap();
     let mut checking = String::new();
+    let mut skip_blanks = true;
     let end = s.len();
     if c != ' ' {
         if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != '\\' {
@@ -44,7 +49,10 @@ pub fn token_from_s(s :&String, pos :usize, tokenable :&Regex)->(usize, String) 
 
     for i in pos+1 .. s.len() {
         let c = s.chars().nth(i).unwrap();
-        if c != ' ' || i != s.len()-1 {
+        if c != ' ' || !skip_blanks {
+            if c != ' ' {
+                skip_blanks = false;
+            }
             if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != '\\' {
                 checking.push(c);
                 if !tokenable.is_match(&checking[..]) {
