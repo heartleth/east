@@ -77,7 +77,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
         code_idx = info.0;
         
         for rule in candidates.iter_mut() {
-            let name = &rule.1["name"].as_str().unwrap();
             let tokens = &rule.1["tokens"];
             let types :Vec<&json::JsonValue> = tokens.members().next().unwrap().members().collect();
             let tokens :Vec<&json::JsonValue> = tokens.members().last().unwrap().members().collect();
@@ -132,7 +131,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         
                         if elem_token_type == "ident" {
                             rule.4 += 1;
-                            println!("{}", token_name);
                             rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
                             rule.5 = false;
                         }
@@ -170,25 +168,25 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
             }
 
         }
-        // for elem in token.chars() {
-        //     match elem { // From Enpp-rust
-        //         '\\' => { escaped = in_string && !escaped },
-        //         '"' => { if !escaped { in_string = !in_string; } escaped=false; },
-        //         '(' => if !in_string { stack.push('(') },
-        //         ')' => if !in_string {
-        //             if stack.is_empty() { is_going_out = true; break; }
-        //             else if *stack.last().unwrap() == '(' { stack.pop(); }
-        //             else { return Err("Parentheses do not match."); }
-        //         },
-        //         '{' => if !in_string { stack.push('{') },
-        //         '}' => if !in_string {
-        //             if stack.is_empty() { is_going_out = true; break; }
-        //             else if *stack.last().unwrap() == '{' { stack.pop(); }
-        //             else { return Err("Parentheses do not match."); }
-        //         },
-        //         _=>escaped=false
-        //     };
-        // }
+        for elem in token.chars() {
+            match elem { // From Enpp-rust
+                '\\' => { escaped = in_string && !escaped },
+                '"' => { if !escaped { in_string = !in_string; } escaped=false; },
+                '(' => if !in_string { stack.push('(') },
+                ')' => if !in_string {
+                    if stack.is_empty() { is_going_out = true; break; }
+                    else if *stack.last().unwrap() == '(' { stack.pop(); }
+                    else { return Err("Parentheses do not match."); }
+                },
+                '{' => if !in_string { stack.push('{') },
+                '}' => if !in_string {
+                    if stack.is_empty() { is_going_out = true; break; }
+                    else if *stack.last().unwrap() == '{' { stack.pop(); }
+                    else { return Err("Parentheses do not match."); }
+                },
+                _=>escaped=false
+            };
+        }
         candidates.retain(|x|!to_drop.contains(&x.0));
         cck = ck;
         if is_going_out {
@@ -217,7 +215,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
             let name = code.1["name"].as_str().unwrap();
             
             for (k, v) in &code.3 {
-                println!("{} {}", name, k);
                 end = s.len();
                 let token_type = v.0;
                 if k == &code.7 {
@@ -243,11 +240,16 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         ret_args.insert(k.to_string(), (Expression::Ident(s.to_string()), "ident".to_string()));
                     }
                     else {
-                        let info = first_phrase(&s, rules, tokenable, token_type).unwrap();
-                        if info.0 != s.len() {
+                        let info = first_phrase(&s, rules, tokenable, token_type);
+                        if let Ok(info) = info {
+                            if info.0 != s.len() {
+                                is_skipping = true;
+                            }
+                            ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
+                        }
+                        else {
                             is_skipping = true;
                         }
-                        ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
                     }
                 }
             }
@@ -264,11 +266,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     candidates_final.1 = code;
                     candidates_final.2 = ret;
                 }
-                //if code.9 <= (candidates_final.1).9 && (candidates_final.1).8 == code.8 {
-                //    candidates_final.0 = end;
-                //    candidates_final.1 = code;
-                //    candidates_final.2 = ret;
-                //}
             }
         }
         return Ok((candidates_final.0, candidates_final.2));

@@ -5,7 +5,6 @@
     "tokenable": "^([:;{}]|[=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
     "syntax": {
         "exp": [
-            [{ "name": "world", "rule": "a {a:exp} {b:ident}" }],
             [{ "name": "bracket_closed", "rule": "({a:exp})" }],
             [{ "name": "method_call", "rule": "{obj:exp}.{function:ident}({args:exp_multi})" }],
             [{ "name": "function_call", "rule": "{function:ident}({args:exp_multi})" }],
@@ -58,7 +57,6 @@
             [{ "name": "", "rule": "" }],
             [{ "name": "single", "rule": "{a:statement}" }],
             [{ "name": "recursive", "rule": "{1:statement}\n{2:block}" }],
-            [{ "name": "recursive", "rule": "{1:statement}{2:block}}" }],
             [{ "name": "recursive", "rule": "{1:statement}{2:block}" }]
         ]
     }
