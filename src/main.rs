@@ -27,7 +27,7 @@ fn main() {
 
     find_template(&mut lang, &tokenable).unwrap();
 
-    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "block").unwrap().1, 0);
+    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "block", false).unwrap().1, 0);
 }
 
 #[macro_export]

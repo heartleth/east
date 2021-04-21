@@ -45,19 +45,20 @@
             [{ "name": "type_recursive", "rule": "{1:type}, {2:type_multi}" }]
         ],
         "statement": [
+            [{ "name": "block", "rule": "\\{{a:block}\\}" }],
             [{ "name": "if", "rule": "if ({condition:exp}) \\{ {a:block} \\}" }],
             [{ "name": "while", "rule": "while ({condition:exp}) \\{ {a:block} \\}" }],
             [{ "name": "for", "rule": "for ({t:type} {iterator:ident} : {range:exp}) \\{ {a:block} \\}" }],
-            [{ "name": "", "rule": ";"}],
+            [{ "name": "none", "rule": ";" }],
             [{ "name": "expression", "rule": "{a:exp};"}],
             [{ "name": "declaration_and_init", "rule": "{t:type} {name:ident} = {a:exp};" }],
             [{ "name": "declaration", "rule": "{t:type} {name:ident};" }]
         ],
         "block": [
-            [{ "name": "none", "rule": "" }],
             [{ "name": "single", "rule": "{1:statement}" }],
             [{ "name": "recursive_lf", "rule": "{1:statement}\n{2:block}" }],
-            [{ "name": "recursive", "rule": "{1:statement}{2:block}" }]
+            [{ "name": "recursive", "rule": "{1:statement}{2:block}" }],
+            [{ "name": "none", "rule": "" }]
         ]
     }
 }

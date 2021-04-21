@@ -47,11 +47,11 @@ pub fn find_template(rules :&mut json::JsonValue, tokenable :&Regex)->std::resul
     Ok(())
 }
 
-pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_type :&str)->std::result::Result<(usize, SyntaxTree), &'static str> {
+pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_type :&str, notree :bool)->std::result::Result<(usize, SyntaxTree), &'static str> {
     let mut code_idx = 0;
     let mut is_going_out = false;
     let mut end = 0;
-    let mut candidates :Vec<(usize, &JsonValue, bool, BTreeMap<&str, (&str, (usize, usize))>, usize, bool, usize, &str, usize, usize)> = Vec::new();
+    let mut candidates :Vec<(usize, &JsonValue, bool, BTreeMap<&str, (&str, (usize, usize))>, usize, bool, usize, &str, usize, usize, &str)> = Vec::new();
     let mut to_drop = Vec::new();
     let s_tos = &s.to_string();
 
@@ -59,7 +59,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
     let mut j = 0;
     for ruleset in rules[token_type].members() {
         for rule in ruleset.members() {
-            candidates.push((i, rule, false, BTreeMap::new(), 0, true, 0, "", j, 9999));
+            candidates.push((i, rule, false, BTreeMap::new(), 0, true, 0, "", j, 9999, ""));
             i += 1;
         }
         j += 1;
@@ -75,7 +75,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
         let info = token_from_s(s_tos, ck, tokenable);
         let token = &info.1.trim();
         code_idx = info.0;
-        
         for rule in candidates.iter_mut() {
             let tokens = &rule.1["tokens"];
             let types :Vec<&json::JsonValue> = tokens.members().next().unwrap().members().collect();
@@ -98,7 +97,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     else if let Some(will_expect) = types.get(rule.4+1) {
                         if will_expect.as_bool().unwrap() {
                             if let Some(expected) = &tokens[rule.4+1].as_str() {
-                                if expected == token && (stack.is_empty() || stack.len()==1 && (expected == &")" || expected == &"}")) {
+                                if rule.5 && expected == token && (stack.is_empty() || stack.len()==1 && (expected == &")" || expected == &"}")) {
                                     let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split(":").collect();
                                     let token_name = *token_id.first().ok_or("No token name!")?;
                                     let token_type = *token_id.last().ok_or("No token type!")?;
@@ -114,6 +113,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                                     rule.5 = false;
                                     let (a, b) = rule.3.get_mut(token_name).unwrap().1;
                                     rule.9 = b - a;
+                                    rule.10 = token_name;
                                     if token_type == "ident" && rule.9 == 0 {
                                         to_drop.push(rule.0);
                                     }
@@ -122,7 +122,6 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                             }
                         }
                     }
-                    
                     if will_remain {
                         let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split(":").collect();
                         let token_name = *token_id.first().ok_or("No token name!")?;
@@ -135,6 +134,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                             rule.3.insert(token_name, (elem_token_type, (ck, code_idx)));
                             rule.5 = false;
                             rule.2 = false;
+                            rule.6 = code_idx;
                         }
                         else {
                             if rule.5 {
@@ -152,10 +152,11 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                                 }
                             }
                             else {
-                                let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type)?;
+                                let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type, true)?;
                                 rule.6 = ck + inner.0;
                                 rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
                                 rule.4 += 1;
+                                rule.5 = false;
                                 rule.2 = true;
                             }
                         }
@@ -226,7 +227,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         ret_args.insert(k.to_string(), (Expression::Ident(s[*a..end].to_string()), "ident".to_string()));
                     }
                     else {
-                        let info = first_phrase(&s[*a..], rules, tokenable, token_type);
+                        let info = first_phrase(&s[*a..], rules, tokenable, token_type, false);
                         if let Ok(info) = info {
                             end = a + info.0;
                             ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
@@ -236,7 +237,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         }
                     }
                 }
-                else {
+                else if k == &code.10 || !notree {
                     let (a, b) = v.1;
                     let s =  &s[a..b];
                     if token_type == "ident" {
@@ -244,15 +245,20 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         if info != s.len() {
                             is_skipping = true;
                         }
-                        ret_args.insert(k.to_string(), (Expression::Ident(s.to_string()), "ident".to_string()));
+                        if !notree {
+                            ret_args.insert(k.to_string(), (Expression::Ident(s.to_string()), "ident".to_string()));
+                        }
                     }
                     else {
-                        let info = first_phrase(&s, rules, tokenable, token_type);
+                        let info = first_phrase(&s, rules, tokenable, token_type, notree);
+                        println!("{}", code.1["name"]);
                         if let Ok(info) = info {
                             if info.0 != s.len() {
                                 is_skipping = true;
                             }
-                            ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
+                            if !notree {
+                                ret_args.insert(k.to_string(), (Expression::Exp(info.1), token_type.to_string()));
+                            }
                         }
                         else {
                             is_skipping = true;
@@ -265,16 +271,21 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                 ret.args = ret_args;
                 if end > candidates_final.0 {
                     candidates_final.0 = end;
-                    candidates_final.1 = code;
-                    candidates_final.2 = ret;
+                    if !notree {
+                        candidates_final.1 = code;
+                        candidates_final.2 = ret;
+                    }
                 }
                 else if end == candidates_final.0 && (code.9 <= (candidates_final.1).9 && (candidates_final.1).8 == code.8) {
                     candidates_final.0 = end;
-                    candidates_final.1 = code;
-                    candidates_final.2 = ret;
+                    if !notree {
+                        candidates_final.1 = code;
+                        candidates_final.2 = ret;
+                    }
                 }
             }
         }
+        println!("ㅇㅇ");
         return Ok((candidates_final.0, candidates_final.2));
     }
     

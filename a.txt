@@ -1,6 +1,0 @@
-Rule: "plus"
--1:exp: Rule: "bracket_closed"
-    -a:exp: Rule: "ident"
-        -a:ident: 1
--2:exp: Rule: "ident"
-    -a:ident:  30
