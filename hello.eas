@@ -1,3 +1,5 @@
-1+2;
-1+2;
-1+2;
+int a = 0;
+
+for (int i : v) {
+    std::cout << pow(i, 2) << std::endl;
+}

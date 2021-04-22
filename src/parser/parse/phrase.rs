@@ -235,7 +235,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     let (a, _) = &v.1;
                     if token_type == "ident" {
                         end = a + token_from(&s[*a..], 0, tokenable);
-                        ret_args.insert(k.to_string(), (Expression::Ident(s[*a..end].to_string()), "ident".to_string()));
+                        ret_args.insert(k.to_string(), (Expression::Ident(s[*a..end].trim().to_string()), "ident".to_string()));
                     }
                     else {
                         let info = first_phrase(&s[*a..], rules, tokenable, token_type, notree);
@@ -259,7 +259,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                             is_skipping = true;
                         }
                         if !notree {
-                            ret_args.insert(k.to_string(), (Expression::Ident(s.to_string()), "ident".to_string()));
+                            ret_args.insert(k.trim().to_string(), (Expression::Ident(s.trim().to_string()), "ident".to_string()));
                         }
                     }
                     else {
