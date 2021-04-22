@@ -18,7 +18,8 @@ fn print_info(exp :&SyntaxTree, indents :usize) {
 }
 
 fn main() {
-    let content = fs::read("hello.eas").expect("Error!");
+    use std::env;
+    let content = fs::read(env::args().nth(1).unwrap()).expect("Error!");
     let content = String::from_utf8(content).expect("Error!");
 
     let lang = &fs::read("language.json").expect("Error!");
@@ -28,7 +29,7 @@ fn main() {
     find_template(&mut lang, &tokenable).unwrap();
 
     // println!("`{}`", token_from("\r\n34", 0, &tokenable));
-    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "block", false).unwrap().1, 0);
+    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "root", false).unwrap().1, 0);
 }
 
 #[macro_export]

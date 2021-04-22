@@ -2,7 +2,7 @@
     "name": "C++",
     "ext": ".cpp",
 
-    "tokenable": "^([:;{}=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
+    "tokenable": "^(#|[:;{}=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
     "syntax": {
         "exp": [
             [{ "name": "bracket_closed", "rule": "({a:exp})" }],
@@ -42,7 +42,7 @@
         "type_multi": [
             [{ "name": "single_type", "rule": "{t:type}"}],
             [{ "name": "single_value", "rule": "{a:exp}"}],
-            [{ "name": "type_recursive", "rule": "{1:type}, {2:type_multi}" }]
+            [{ "name": "type_recursive", "rule": "{1:type}, {rest:type_multi}" }]
         ],
         "statement": [
             [{ "name": "block", "rule": "\\{{a:block}\\}" }],
@@ -56,8 +56,22 @@
         ],
         "block": [
             [{ "name": "none", "rule": "" }],
-            [{ "name": "recursive", "rule": "{1:statement} {2:block}" }],
+            [{ "name": "recursive", "rule": "{1:statement} {rest:block}" }],
             [{ "name": "single", "rule": "{1:statement}" }]
+        ],
+        "args": [
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "single", "rule": "{t:type} {name:ident}" }],
+            [{ "name": "recursive", "rule": "{t:type} {name:ident}, {rest:args}" }]
+        ],
+        "root_statement": [
+            [{ "name": "entry", "rule": "int main({args:args}) \\{ {a:block} \\}" }],
+            [{ "name": "import", "rule": "#include <{name:ident}>" }]
+        ],
+        "root": [
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "single", "rule": "{a:root_statement}" }],
+            [{ "name": "recursive", "rule": "{a:root_statement}{rest:root}" }]
         ]
     }
 }
