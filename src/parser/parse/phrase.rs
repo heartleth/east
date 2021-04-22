@@ -155,12 +155,14 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                             else {
                                 let inner = first_phrase(&s[ck..], rules, tokenable, elem_token_type, true);
                                 if let Ok(inner) = inner {
-                                    if rule.1["name"] == "block" {
-                                        println!("{} {}", s, inner.0);
-                                    }
                                     rule.6 = ck + inner.0;
                                     rule.3.insert(token_name, (elem_token_type, (ck, rule.6)));
-                                    rule.4 += 1;
+                                    if inner.0 == 0 {
+                                        rule.4 += 2;
+                                    }
+                                    else {
+                                        rule.4 += 1;
+                                    }
                                     rule.5 = false;
                                     rule.2 = true;
                                 }
