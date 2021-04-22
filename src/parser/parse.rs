@@ -10,23 +10,25 @@ pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
     if s.len() == 0 { return 0; }
     let mut end = s.len();
     let mut checking = String::new();
-    let c = s.chars().nth(pos).unwrap();
+    let c = &s[pos..pos+1];
     let mut skip_blanks = true;
-    if c != ' ' {
-        if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != '\\' {
-            checking.push(c);
+    if c.trim().len() > 0 {
+        skip_blanks = false;
+        if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != "\\" {
+            checking.push(c.chars().next().unwrap());
         }
     }
-
+    
     for i in pos+1 .. s.len() {
-        let c = s.chars().nth(i).unwrap();
-        if c != ' ' || skip_blanks {
-            if c != ' ' {
+        let c = &s[i..i+1];
+        let len = c.trim().len();
+        if len > 0 || !skip_blanks {
+            if len > 0 {
                 skip_blanks = false;
             }
-            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != '\\' {
-                checking.push(c);
-                if !tokenable.is_match(&checking[..]) {
+            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\" {
+                checking.push(c.chars().next().unwrap());
+                if !tokenable.is_match(&checking[..]){
                     end = i;
                     break;
                 }
@@ -37,24 +39,26 @@ pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
 }
 
 pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
-    let c = s.chars().nth(pos).unwrap();
     let mut checking = String::new();
+    let c = &s[pos..pos+1];
     let mut skip_blanks = true;
     let end = s.len();
-    if c != ' ' {
-        if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != '\\' {
-            checking.push(c);
+    if c.trim().len() > 0 {
+        skip_blanks = false;
+        if (s.chars().nth(pos+1) != Some('{') && s.chars().nth(pos+1) != Some('}')) || c != "\\" {
+            checking.push(c.chars().next().unwrap());
         }
     }
 
     for i in pos+1 .. s.len() {
-        let c = s.chars().nth(i).unwrap();
-        if c != ' ' || !skip_blanks {
-            if c != ' ' {
+        let c = &s[i..i+1];
+        let len = c.trim().len();
+        if len > 0 || !skip_blanks {
+            if len > 0 {
                 skip_blanks = false;
             }
-            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != '\\' {
-                checking.push(c);
+            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\" {
+                checking.push(c.chars().next().unwrap());
                 if !tokenable.is_match(&checking[..]) {
                     checking.pop();
                     return (i, checking);

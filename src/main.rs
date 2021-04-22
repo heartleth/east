@@ -27,7 +27,8 @@ fn main() {
 
     find_template(&mut lang, &tokenable).unwrap();
 
-    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "statement", false).unwrap().1, 0);
+    // println!("`{}`", token_from("\r\n34", 0, &tokenable));
+    print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "block", false).unwrap().1, 0);
 }
 
 #[macro_export]

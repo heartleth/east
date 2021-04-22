@@ -56,9 +56,8 @@
         ],
         "block": [
             [{ "name": "none", "rule": "" }],
-            [{ "name": "single", "rule": "{1:statement}" }],
-            [{ "name": "recursive_lf", "rule": "{1:statement}\n{2:block}" }],
-            [{ "name": "recursive", "rule": "{1:statement}{2:block}" }]
+            [{ "name": "recursive", "rule": "{1:statement} {2:block}" }],
+            [{ "name": "single", "rule": "{1:statement}" }]
         ]
     }
 }
