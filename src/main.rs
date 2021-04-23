@@ -24,10 +24,10 @@ fn main() {
     let content = fs::read(env::args().nth(1).unwrap()).expect("Error!");
     let content = String::from_utf8(content).expect("Error!");
     
-    let target = fs::read(env::args().nth(2).unwrap()).expect("Error!");
+    let target = fs::read(env::args().nth(3).unwrap()).expect("Error!");
     let target = json::parse(&String::from_utf8(target).expect("Error!")[..]).unwrap();
 
-    let lang = &fs::read("language.json").expect("Error!");
+    let lang = &fs::read(env::args().nth(2).unwrap()).expect("Error!");
     let mut lang = json::parse(std::str::from_utf8(&lang).expect("Error!")).unwrap();
     let tokenable = Regex::new(&jpath!(lang, tokenable).unwrap()).unwrap();
 
