@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 regex = "*"
 json = "0.12.4"
+handlebars = "*"

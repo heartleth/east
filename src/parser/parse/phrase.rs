@@ -15,26 +15,35 @@ pub fn find_template(rules :&mut json::JsonValue, tokenable :&Regex)->std::resul
                     let info = token_from_s(&rule_s.to_string(), ck, tokenable);
                     code_at = info.0;
                     let token = info.1;
-                    if rule_s[ck..code_at].trim() != "{" || (ck > 0 && rule_s.chars().nth(ck-1) == Some('\\')) {
-                        if rule_s[ck..code_at].trim() == "\\" && (rule_s.chars().nth(code_at) == Some('{') || rule_s.chars().nth(code_at) == Some('}')) {
-                            
-                        }
-                        else {
-                            types.push(true);
-                            tokens.push(token);
-                        }
-                    }
-                    else {
+                    if rule_s[ck..code_at].trim() == "{" && rule_s.chars().nth(code_at+1) != Some('{') && rule_s.chars().nth(code_at) == Some('{') {
+                        code_at += 1;
                         let ck = code_at;
                         for c in rule_s[code_at..].chars() {
                             code_at += 1;
                             if c == '}' {
                                 tokens.push(rule_s[ck..code_at-1].to_string());
                                 types.push(false);
+                                code_at += 1;
                                 break;
                             }
                         }
                     }
+                    else {
+                        types.push(true);
+                        tokens.push(token);
+                    }
+
+                    // if rule_s[ck..code_at].trim() != "{" || (ck > 0 && rule_s.chars().nth(ck-1) == Some('\\')) {
+                    //     if rule_s[ck..code_at].trim() == "\\" && (rule_s.chars().nth(code_at) == Some('{') || rule_s.chars().nth(code_at) == Some('}')) {
+                            
+                    //     }
+                    //     else if rule_s[ck..code_at].trim() == "}" && rule_s.chars().nth(ck-1) == Some('}') {
+                            
+                    //     }
+                    //     else {
+                            
+                    //     }
+                    // }
                 }
                 
                 let mut info = json::Array::new();
@@ -98,7 +107,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                         if will_expect.as_bool().unwrap() {
                             if let Some(expected) = &tokens[rule.4+1].as_str() {
                                 if rule.5 && expected == token && (stack.is_empty() || (stack.len()==1 && (expected == &")" || expected == &"}"))) {
-                                    let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split(":").collect();
+                                    let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split("-").collect();
                                     let token_name = *token_id.first().ok_or("No token name!")?;
                                     let token_type = *token_id.last().ok_or("No token type!")?;
                                     if rule.2 {
@@ -124,7 +133,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
                     }
                     
                     if will_remain {
-                        let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split(":").collect();
+                        let token_id :Vec<&str> = tokens[rule.4].as_str().unwrap().split("-").collect();
                         let token_name = *token_id.first().ok_or("No token name!")?;
                         let elem_token_type = *token_id.last().ok_or("No token type!")?;
                         rule.7 = token_name;
