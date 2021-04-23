@@ -4,7 +4,7 @@
 int main() {
     int a = 0;
 
-    for (int i : v) {
-        std::cout << pow(i, 2) << std::endl;
+    for (char i : "hello") {
+        std::cout << i << std::endl;
     }
 }

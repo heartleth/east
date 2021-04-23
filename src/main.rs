@@ -28,7 +28,6 @@ fn main() {
 
     find_template(&mut lang, &tokenable).unwrap();
 
-    // println!("`{}`", token_from("\r\n34", 0, &tokenable));
     print_info(&first_phrase(&content, &lang["syntax"], &tokenable, "root", false).unwrap().1, 0);
 }
 

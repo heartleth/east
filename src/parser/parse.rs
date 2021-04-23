@@ -9,6 +9,8 @@ pub use phrase::*;
 pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
     if s.len() == 0 { return 0; }
     let mut end = s.len();
+    let mut is_string = false;
+    let mut is_string_f = true;
     let mut checking = String::new();
     let c = &s[pos..pos+1];
     let mut skip_blanks = true;
@@ -18,20 +20,37 @@ pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
             checking.push(c.chars().next().unwrap());
         }
     }
+    if c == "\"" {
+        is_string = true;
+        is_string_f = false;
+    }
     
     for i in pos+1 .. s.len() {
         let c = &s[i..i+1];
         let len = c.trim().len();
         if len > 0 || !skip_blanks {
             if len > 0 {
-                skip_blanks = false;
+                if skip_blanks {
+                    if c == "\"" {
+                        is_string = true;
+                    }
+                    skip_blanks = false;
+                }
             }
-            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\" {
+            if !is_string && ((s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\") {
                 checking.push(c.chars().next().unwrap());
                 if !tokenable.is_match(&checking[..]){
                     end = i;
                     break;
                 }
+            }
+            else if is_string && (s.chars().nth(i) == Some('\"')) && !is_string_f {
+                end = i+1;
+                break;
+            }
+            
+            if is_string {
+                is_string_f = false;
             }
         }
     }
@@ -42,6 +61,8 @@ pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
     let mut checking = String::new();
     let c = &s[pos..pos+1];
     let mut skip_blanks = true;
+    let mut is_string = false;
+    let mut is_string_f = true;
     let end = s.len();
     if c.trim().len() > 0 {
         skip_blanks = false;
@@ -49,20 +70,39 @@ pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
             checking.push(c.chars().next().unwrap());
         }
     }
+    if c == "\"" {
+        is_string = true;
+        is_string_f = false;
+    }
 
     for i in pos+1 .. s.len() {
         let c = &s[i..i+1];
         let len = c.trim().len();
         if len > 0 || !skip_blanks {
             if len > 0 {
-                skip_blanks = false;
+                if skip_blanks {
+                    if c == "\"" {
+                       is_string = true;
+                    }
+                    skip_blanks = false;
+                }
             }
-            if (s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\" {
+            if is_string {
+                checking.push(c.chars().next().unwrap());
+            }
+            if !is_string && ((s.chars().nth(i+1) != Some('{') && s.chars().nth(i+1) != Some('}')) || c != "\\") {
                 checking.push(c.chars().next().unwrap());
                 if !tokenable.is_match(&checking[..]) {
                     checking.pop();
                     return (i, checking);
                 }
+            }
+            else if is_string && (s.chars().nth(i) == Some('\"')) && !is_string_f {
+                return (i+1, checking);
+            }
+
+            if is_string {
+                is_string_f = false;
             }
         }
     }
