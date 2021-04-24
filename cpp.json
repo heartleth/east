@@ -33,6 +33,7 @@
             [{ "name": "recursive", "rule": "{{1-exp}}, {{2-exp_multi}}" }]
         ],
         "type": [
+            [{ "name": "integer", "rule": "int" }],
             [{ "name": "normal_type", "rule": "{{t-ident}}" }],
             [{ "name": "const", "rule": "const {{t-type}}" }],
             [{ "name": "const", "rule": "{{t-type}} const" }],

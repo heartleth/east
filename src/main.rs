@@ -37,7 +37,7 @@ fn main() {
     let mut renderer = handlebars::Handlebars::new();
     let mut lf_reg = std::collections::HashMap::new();
     renderer.register_escape_fn(|e|e.to_string());
-    fs::write(format!("result.{}", target["ext"]), assemble::assemble(&ast.1, &target, &mut renderer, "root", &mut lf_reg).unwrap()).unwrap();
+    fs::write(format!("{}.{}", env::args().nth(4).unwrap(), target["ext"]), assemble::assemble(&ast.1, &target, &mut renderer, "root", &mut lf_reg).unwrap()).unwrap();
 }
 
 #[macro_export]

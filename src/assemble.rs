@@ -7,6 +7,7 @@ pub fn assemble(ast :&SyntaxTree, lang :&json::JsonValue, renderer :&mut Handleb
     let rule_name = &ast.rule;
     let rule_types = &lang["syntax"][rule_type];
     if !renderer.has_template(&type_id_raw) {
+        let mut breaking = false;
         for ruleset in rule_types.members() {
             for rule in ruleset.members() {
                 if rule["name"] == rule_name[..] {
@@ -20,8 +21,11 @@ pub fn assemble(ast :&SyntaxTree, lang :&json::JsonValue, renderer :&mut Handleb
                     else {
                         return Err("No `rule` in object.");
                     }
+                    breaking = true;
                 }
+                if breaking { break; }
             }
+            if breaking { break; }
         }
     }
     
