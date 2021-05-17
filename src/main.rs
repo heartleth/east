@@ -8,17 +8,6 @@ mod parser;
 use parser::*;
 mod assemble;
 
-// fn print_info(exp :&SyntaxTree, indents :usize) {
-//     println!("Rule: \"{}\"", &exp.rule);
-//     for (k, v) in &exp.args {
-//         print!("{}-{}:{}: ", " ".repeat(indents*4), k, &v.1);
-//         match &v.0 {
-//             Expression::Ident(name) => println!("{}", name),
-//             Expression::Exp(child) => print_info(&child, indents+1)
-//         }
-//     }
-// }
-
 fn main() {
     use std::env;
     let content = fs::read(env::args().nth(1).unwrap()).expect("Error!");
@@ -38,6 +27,13 @@ fn main() {
     let mut lf_reg = std::collections::HashMap::new();
     renderer.register_escape_fn(|e|e.to_string());
     fs::write(format!("{}.{}", env::args().nth(4).unwrap(), target["ext"]), assemble::assemble(&ast.1, &target, &mut renderer, "root", &mut lf_reg).unwrap()).unwrap();
+    for cmd in lang["then"].members() {
+        if cfg!(windows) {
+            std::process::Command::new("cmd")
+                .args(&["/c", &cmd.as_str().unwrap()]).output()
+                .expect("Error!");
+        }
+    }
 }
 
 #[macro_export]

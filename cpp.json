@@ -2,7 +2,7 @@
     "name": "C++",
     "ext": "cpp",
 
-    "tokenable": "^(#|[:;{}=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
+    "tokenable": "^(\"|#|[:;{}=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
     "syntax": {
         "exp": [
             [{ "name": "bracket_closed", "rule": "({{a-exp}})" }],
@@ -67,7 +67,7 @@
         ],
         "root_statement": [
             [{ "name": "entry", "rule": "int main({{args-args}}) { {{a-block}} }" }],
-            [{ "name": "import", "rule": "#include <{{name-ident}}>", "lf": true }]
+            [{ "name": "import", "rule": "#include \"{{name-ident}}.hpp\"", "lf": true, "str": true }]
         ],
         "root": [
             [{ "name": "none", "rule": "" }],

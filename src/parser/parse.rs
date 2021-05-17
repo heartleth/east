@@ -20,10 +20,10 @@ pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
             checking.push(c.chars().next().unwrap());
         }
     }
-    if c == "\"" {
-        is_string = true;
-        is_string_f = false;
-    }
+    // if c == "\"" {
+    //     is_string = true;
+    //     is_string_f = false;
+    // }
     
     for i in pos+1 .. s.len() {
         let c = &s[i..i+1];
@@ -31,9 +31,9 @@ pub fn token_from(s :&str, pos :usize, tokenable :&Regex)->usize {
         if len > 0 || !skip_blanks {
             if len > 0 {
                 if skip_blanks {
-                    if c == "\"" {
-                        is_string = true;
-                    }
+                    // if c == "\"" {
+                    //     is_string = true;
+                    // }
                     skip_blanks = false;
                 }
             }
@@ -70,10 +70,10 @@ pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
             checking.push(c.chars().next().unwrap());
         }
     }
-    if c == "\"" {
-        is_string = true;
-        is_string_f = false;
-    }
+    // if c == "\"" {
+    //     is_string = true;
+    //     is_string_f = false;
+    // }
 
     for i in pos+1 .. s.len() {
         let c = &s[i..i+1];
@@ -81,9 +81,9 @@ pub fn token_from_s(s :&str, pos :usize, tokenable :&Regex)->(usize, String) {
         if len > 0 || !skip_blanks {
             if len > 0 {
                 if skip_blanks {
-                    if c == "\"" {
-                       is_string = true;
-                    }
+                    // if c == "\"" {
+                    //    is_string = true;
+                    // }
                     skip_blanks = false;
                 }
             }

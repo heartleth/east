@@ -194,7 +194,7 @@ pub fn first_phrase(s :&str, rules :&json::JsonValue, tokenable :&Regex, token_t
         for elem in token.chars() {
             match elem { // From Enpp-rust
                 '\\' => { escaped = in_string && !escaped },
-                '"' => { if !escaped { in_string = !in_string; } escaped=false; },
+                // '"' => { if !escaped { in_string = !in_string; } escaped=false; },
                 '(' => if !in_string { stack.push('(') },
                 ')' => if !in_string {
                     if stack.is_empty() { is_going_out = true; break; }
