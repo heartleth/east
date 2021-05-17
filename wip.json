@@ -1,0 +1,84 @@
+{
+    "name": "epp2",
+    "ext": "esp",
+
+    "tokenable": "^(#|[:;{}=;]|<<|>>|::|\\.|,|[()]|[<>+\\-*/]|\\+=|[0-9]+|[a-zA-Z_][a-zA-Z_0-9]*)$",
+    "syntax": {
+        "exp": [
+            [{ "name": "bracket_closed", "rule": "({{a-exp}})" }],
+            [{ "name": "method_call", "rule": "{{obj-exp}}.{{function-ident}}({{args-exp_multi}})" }],
+            [{ "name": "function_call", "rule": "{{function-ident}}({{args-exp_multi}})" }],
+            [
+                { "name": "greater", "rule": "{{1-exp}} < {{2-exp}}" },
+                { "name": "lesser", "rule": "{{1-exp}} > {{2-exp}}" }
+            ],
+            [
+                { "name": "left_shift", "rule": "{{1-exp}} << {{2-exp}}" },
+                { "name": "right_shift", "rule": "{{1-exp}} >> {{2-exp}}" }
+            ],
+            [
+                { "name": "plus", "rule": "{{1-exp}} + {{2-exp}}" },
+                { "name": "minus", "rule": "{{1-exp}} - {{2-exp}}" }
+            ],
+            [
+                { "name": "multiply", "rule": "{{1-exp}} * {{2-exp}}" },
+                { "name": "divide", "rule": "{{1-exp}} / {{2-exp}}" }
+            ],
+            [{ "name": "member", "rule": "{{obj-exp}}.{{member-ident}}" }],
+            [{ "name": "context_member", "rule": "{{context-ident}}.{{member-exp}}" }],
+            [{ "name": "ident", "rule": "{{a-ident}}" }]
+        ],
+        "exp_multi": [
+            [{ "name": "single", "rule": "{{a-exp}}" }],
+            [{ "name": "recursive", "rule": "{{1-exp}}, {{2-exp_multi}}" }]
+        ],
+        "type": [
+            [{ "name": "integer", "rule": "Number" }],
+            [{ "name": "normal_type", "rule": "{{t-ident}}" }],
+            [{ "name": "const", "rule": "const {{t-type}}" }],
+            [{ "name": "const", "rule": "{{t-type}} const" }],
+            [{ "name": "context", "rule": "{{super-type}}.{{child-type}}" }],
+            [{ "name": "generics", "rule": "{{t-ident}}<{{args-type_multi}}>" }]
+        ],
+        "type_multi": [
+            [{ "name": "single_type", "rule": "{{t-type}}"}],
+            [{ "name": "single_value", "rule": "{{a-exp}}"}],
+            [{ "name": "type_recursive", "rule": "{{1-type}}, {{rest-type_multi}}" }]
+        ],
+        "statement": [
+            [{ "name": "block", "rule": "{{{a-block}}}" }],
+            [{ "name": "if", "rule": "if ({{condition-exp}}) { {{a-block}} }" }],
+            [{ "name": "while", "rule": "while ({{condition-exp}}) { {{a-block}} }" }],
+            [{ "name": "for", "rule": "for (let {{iterator-ident}} of {{range-exp}}) { {{a-block}} }" }],
+            [{ "name": "for", "rule": "for (var {{iterator-ident}} of {{range-exp}}) { {{a-block}} }" }],
+            [{ "name": "none", "rule": ";" }],
+            [{ "name": "expression", "rule": "{{a-exp}};"}],
+            [{ "name": "declaration_and_init", "rule": "var {{name-ident}} :{{t-type}} = {{a-exp}};" }],
+            [{ "name": "declaration_and_init", "rule": "let {{name-ident}} :{{t-type}} = {{a-exp}};" }],
+            [{ "name": "declaration_and_init", "rule": "const {{name-ident}} :{{t-type}} = {{a-exp}};" }],
+            [{ "name": "declaration", "rule": "var {{name-ident}} :{{t-type}};" }],
+            [{ "name": "declaration", "rule": "let {{name-ident}} :{{t-type}};" }],
+            [{ "name": "declaration", "rule": "const {{name-ident}} :{{t-type}};" }]
+        ],
+        "block": [
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "recursive", "rule": "{{1-statement}} {{rest-block}}" }],
+            [{ "name": "single", "rule": "{{1-statement}}" }]
+        ],
+        "args": [
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "single", "rule": "{{t-type}} {{name-ident}}" }],
+            [{ "name": "recursive", "rule": "{{t-type}} {{name-ident}}, {{rest-args}}" }]
+        ],
+        "root_statement": [
+            [{ "name": "entry", "rule": "(({{args-args}})=>{ {{a-block}} })();" }],
+            [{ "name": "entry", "rule": "(function ({{args-args}}) { {{a-block}} })();" }],
+            [{ "name": "import", "rule": "import * as {{name-ident}} from '{{name-ident}}';", "lf": true }]
+        ],
+        "root": [
+            [{ "name": "none", "rule": "" }],
+            [{ "name": "single", "rule": "{{a-root_statement}}" }],
+            [{ "name": "recursive", "rule": "{{a-root_statement}}{{rest-root}}" }]
+        ]
+    }
+}
